@@ -1,71 +1,41 @@
 <?php
+class SPFormVerification{
 
-/**
- * 表单验证
- *
- * 详细说明
- * @形参
- * @访问      公有
- * @返回值    void
- * @throws
- * helius
- */
-function form($form,array $reg,$is_return = FALSE)
-{
-	if(is_array($form))
+	/**
+	 * 表单验证
+	 *
+	 * 详细说明
+	 * @形参
+	 * @访问      公有
+	 * @返回值    void
+	 * @throws
+	 * helius
+	 */
+	function form($form,array $reg,$is_return = FALSE)
 	{
-		$new = array();
-	}
-	else
-	{
-		$new = NULL;
-	}
-
-	foreach($reg AS $k=>$row)
-	{
-		if(isset($row['reg']))
+		if(is_array($form))
 		{
-			if(is_array($form))
-			{
-				$f = $form[$k];
-			}
-			else
-			{
-				$f = $form;
-			}
+			$new = array();
+		}
+		else
+		{
+			$new = NULL;
+		}
 
-			if($row['is_empty'] === TRUE && empty($f))
+		foreach($reg AS $k=>$row)
+		{
+			if(isset($row['reg']))
 			{
 				if(is_array($form))
 				{
-					$new[$k] = $f;
+					$f = $form[$k];
 				}
 				else
 				{
-					$new = $f;
+					$f = $form;
 				}
-			}
-			elseif($row['is_empty'] === FALSE && empty($f))
-			{
-				$e = array(
-					'error'	=> array(
-						'error_typ' =>'isEmpty',
-						'error_msg'	=> (empty($row['name'])?$k:$row['name']).'-字段不能为空'
-					)
-				);
 
-				if($is_return === TRUE)
-				{
-					return $e;
-				}
-				else
-				{
-					$this->show_message($e['error']['error_msg']);
-				}
-			}
-			else
-			{
-				if(preg_match($row['reg'], $f))
+				if($row['is_empty'] === TRUE && empty($f))
 				{
 					if(is_array($form))
 					{
@@ -76,12 +46,12 @@ function form($form,array $reg,$is_return = FALSE)
 						$new = $f;
 					}
 				}
-				else
+				elseif($row['is_empty'] === FALSE && empty($f))
 				{
 					$e = array(
 						'error'	=> array(
-							'error_typ' =>'regexNotMatch',
-							'error_msg'	=> (empty($row['name'])?$k:$row['name']).'-字段不符合格式要求'
+							'error_typ' =>'isEmpty',
+							'error_msg'	=> (empty($row['name'])?$k:$row['name']).'-字段不能为空'
 						)
 					);
 
@@ -94,47 +64,97 @@ function form($form,array $reg,$is_return = FALSE)
 						$this->show_message($e['error']['error_msg']);
 					}
 				}
-			}
-		}
-		else
-		{
-			/*if(empty($form[$k]))
-			{
-				continue;
-			}*/
-
-			if(!isset($form[$k][0]))
-			{
-				$tmp = $form[$k];
-				unset($form[$k]);
-				$form[$k][0] = $tmp;
-			}
-
-			foreach($form[$k] AS $ks=>$rows)
-			{
-				$t = $this->form($rows,$row,TRUE);
-
-				$new[$k][] = $t;
-
-				if(!empty($t['error']))
+				else
 				{
-					if($is_return === TRUE)
+					if(preg_match($row['reg'], $f))
 					{
-						return $t;
+						if(is_array($form))
+						{
+							$new[$k] = $f;
+						}
+						else
+						{
+							$new = $f;
+						}
 					}
 					else
 					{
-						$this->show_message((empty($row['name'])?$k:$row['name']).'-'.$t['error']['error_msg']);
+						$e = array(
+							'error'	=> array(
+								'error_typ' =>'regexNotMatch',
+								'error_msg'	=> (empty($row['name'])?$k:$row['name']).'-字段不符合格式要求'
+							)
+						);
+
+						if($is_return === TRUE)
+						{
+							return $e;
+						}
+						else
+						{
+							$this->show_message($e['error']['error_msg']);
+						}
+					}
+				}
+			}
+			else
+			{
+				/*if(empty($form[$k]))
+				{
+					continue;
+				}*/
+
+				if(!isset($form[$k][0]))
+				{
+					$tmp = $form[$k];
+					unset($form[$k]);
+					$form[$k][0] = $tmp;
+				}
+
+				foreach($form[$k] AS $ks=>$rows)
+				{
+					$t = $this->form($rows,$row,TRUE);
+
+					$new[$k][] = $t;
+
+					if(!empty($t['error']))
+					{
+						if($is_return === TRUE)
+						{
+							return $t;
+						}
+						else
+						{
+							$this->show_message((empty($row['name'])?$k:$row['name']).'-'.$t['error']['error_msg']);
+						}
 					}
 				}
 			}
 		}
-	}
 
-	return $new;
+		return $new;
+	}
+	
+	/**
+	 * 消息输出
+	 *
+	 * 详细说明
+	 * @形参
+	 * @访问      公有
+	 * @返回值    void
+	 * @throws
+	 * helius
+	 */
+	function show_message($msg)
+	{
+		//此处可自行更换输出形式
+		die($msg);
+	}
 }
 
-$result = form($_POST, array(
+$val = new SPFormVerification();
+
+$result = $val->form($_POST, array(
 	'type'          =>	array(
 		'reg'		    =>'/^[0-1]{1}$/',
 		'is_empty'	    =>true,
